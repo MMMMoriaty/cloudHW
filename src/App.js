@@ -11,7 +11,7 @@ class App extends Component {
     }
 
     componentWillMount() {
-        fetch('http://47.106.199.254//getStockDataByDate/2018-10-29', {
+        fetch('http://47.106.199.254/getAllStockData', {
             method: 'GET',
         }).then((res) => res.json()).then((json) => {
             let priceList = []
@@ -41,19 +41,13 @@ class App extends Component {
     }
 
     getPriceListData(list) {
-        return list.map((v, k) => {
+        return list.map((v) => {
             return {
                 name: v[0].name,
                 type: 'line',
-                showSymbol: false,
+                showSymbol: true,
                 hoverAnimation: false,
-                data: v.map((j) => {
-                    let time = moment(j.date + '/' + j.time, 'YYYY-MM-DD/HH:mm:ss')
-                    return {
-                        name: j.date + ' ' + j.time,
-                        value: [time.valueOf(), j.curPrice * 100]
-                    }
-                })
+                data: v.map((j) => j.curPrice)
             }
 
 
@@ -61,16 +55,28 @@ class App extends Component {
     }
 
     render() {
+        let lenArr = this.state.priceList.map((v) => v.length)
+        let max = Math.max.apply(null, lenArr)
+        let timeArr
+        this.state.priceList.map((v) => {
+            if (v.length === max ){
+                timeArr = v.map((v) => moment(parseInt(v.timestamp)).format('YYYY-MM-DD HH:mm'))
+            }
+        })
         let priceListOption = {
             xAxis: {
-                type: 'time',
+                type: 'category',
                 splitLine: {
                     show: false
-                }
+                },
+                data: timeArr,
+                axisTick: {
+                    alignWithLabel: true
+                },
             },
             yAxis: {
                 type: 'value',
-                boundaryGap: ['20%', '20%'],
+                // boundaryGap: ['20%', '20%'],
                 min: 'dataMin',
                 max: 'dataMax',
                 splitLine: {
@@ -82,7 +88,7 @@ class App extends Component {
                 data: this.state.priceList.map((v) => v[0].name)
             },
             tooltip: {
-                trigger: 'axis'
+                trigger: 'axis',
             },
         }
         let riseTimeOption = {
