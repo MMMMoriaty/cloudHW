@@ -2,12 +2,15 @@ import React, {Component} from 'react';
 import ReactEcharts from 'echarts-for-react'
 import styles from './App.scss'
 import moment from 'moment'
+import 'echarts-wordcloud'
+import c from './resource/image/1.png'
 
 class App extends Component {
     state = {
         priceList: [],
         riseTimes: [],
         minusPrice: [],
+        wordList: [],
     }
 
     componentWillMount() {
@@ -36,6 +39,20 @@ class App extends Component {
         }).then((res) => res.json()).then((json) => {
             this.setState({
                 minusPrice: json.result,
+            })
+        })
+        fetch('http://47.106.199.254//getRecentWordCountByCode/sh601068/10-30', {
+            method: 'GET',
+        }).then((res) => res.json()).then((json) => {
+            let wordList = []
+            for (let key in json.result){
+                wordList.push({
+                    name: key,
+                    value: json.result[key],
+                })
+            }
+            this.setState({
+                wordList
             })
         })
     }
@@ -162,6 +179,44 @@ class App extends Component {
                 }
             ]
         }
+
+        //sss
+        let maskImage = new Image();
+        maskImage.src = c
+        let wordOption = {
+            backgroundColor:'#fff',
+            tooltip: {
+                show: false
+            },
+            series: [{
+                type: 'wordCloud',
+                // gridSize: 1,
+                autoSize: true,
+                // sizeRange: [20, 39],
+                rotationRange: [-40, 40],
+                // textPadding: 15,
+                // maskImage: maskImage,
+                textStyle: {
+                    normal: {
+                        color: function(v) {
+                            let color = ['#27D38A', '#FFCA1C', '#5DD1FA', '#F88E25','#47A0FF','#FD6565']
+                            let num =Math.floor(Math.random() * (5 + 1));
+                            return color[num];
+                        },
+                    },
+                },
+                left: 'center',
+                top: 'center',
+                width: '96%',
+                height: '90%',
+                // right: null,
+                // bottom: null,
+                // width: 300,
+                // height: 200,
+                // top: 20,
+                data: this.state.wordList,
+            }]
+        }
         return (
             <div className={styles.AppContainer}>
                 <div className={styles.block}>
@@ -190,6 +245,14 @@ class App extends Component {
                     <div className={styles.title}>与上次价格差值统计</div>
                     <ReactEcharts
                         option={minusPriceOption}
+                        notMerge={true}
+                        lazyUpdate={true}
+                    />
+                </div>
+                <div className={styles.block}>
+                    <div className={styles.title}>词云图</div>
+                    <ReactEcharts
+                        option={wordOption}
                         notMerge={true}
                         lazyUpdate={true}
                     />
