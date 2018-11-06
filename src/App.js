@@ -3,7 +3,7 @@ import ReactEcharts from 'echarts-for-react'
 import styles from './App.scss'
 import moment from 'moment'
 import 'echarts-wordcloud'
-import c from './resource/image/1.png'
+// import c from './resource/image/1.png'
 
 class App extends Component {
     state = {
@@ -13,7 +13,8 @@ class App extends Component {
         wordList: [],
     }
 
-    componentWillMount() {
+    fetchAllStockData(){
+        console.log('fetch')
         fetch('http://47.106.199.254/getAllStockData', {
             method: 'GET',
         }).then((res) => res.json()).then((json) => {
@@ -25,7 +26,8 @@ class App extends Component {
                 priceList
             })
         })
-
+    }
+    fetchRecentPriceRise(){
         fetch('http://47.106.199.254/getMostRecentPriceRiseTimes', {
             method: 'GET',
         }).then((res) => res.json()).then((json) => {
@@ -33,7 +35,8 @@ class App extends Component {
                 riseTimes: json.result,
             })
         })
-
+    }
+    fetchMostRecentMinusPrice(){
         fetch('http://47.106.199.254/getMostRecentMinusPrice', {
             method: 'GET',
         }).then((res) => res.json()).then((json) => {
@@ -41,6 +44,8 @@ class App extends Component {
                 minusPrice: json.result,
             })
         })
+    }
+    fetchWordCloud(){
         fetch('http://47.106.199.254//getRecentWordCountByCode/sh601068/10-30', {
             method: 'GET',
         }).then((res) => res.json()).then((json) => {
@@ -55,6 +60,18 @@ class App extends Component {
                 wordList
             })
         })
+    }
+    componentWillMount(){
+        this.fetchAllStockData()
+        this.fetchMostRecentMinusPrice()
+        this.fetchRecentPriceRise()
+        this.fetchWordCloud()
+    }
+    componentDidMount() {
+        setInterval(this.fetchAllStockData.bind(this), 5000)
+        setInterval(this.fetchRecentPriceRise.bind(this), 5000)
+        setInterval(this.fetchMostRecentMinusPrice.bind(this), 5000)
+        setInterval(this.fetchWordCloud.bind(this), 5000)
     }
 
     getPriceListData(list) {
@@ -180,9 +197,8 @@ class App extends Component {
             ]
         }
 
-        //sss
-        let maskImage = new Image();
-        maskImage.src = c
+        // let maskImage = new Image();
+        // maskImage.src = c
         let wordOption = {
             backgroundColor:'#fff',
             tooltip: {
