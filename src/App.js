@@ -3,6 +3,7 @@ import ReactEcharts from 'echarts-for-react'
 import styles from './App.scss'
 import moment from 'moment'
 import 'echarts-wordcloud'
+import graph from './resource/json/graph'
 // import c from './resource/image/1.png'
 
 class App extends Component {
@@ -14,7 +15,6 @@ class App extends Component {
     }
 
     fetchAllStockData(){
-        console.log('fetch')
         fetch('http://47.106.199.254/getAllStockData', {
             method: 'GET',
         }).then((res) => res.json()).then((json) => {
@@ -68,10 +68,10 @@ class App extends Component {
         this.fetchWordCloud()
     }
     componentDidMount() {
-        setInterval(this.fetchAllStockData.bind(this), 5000)
-        setInterval(this.fetchRecentPriceRise.bind(this), 5000)
-        setInterval(this.fetchMostRecentMinusPrice.bind(this), 5000)
-        setInterval(this.fetchWordCloud.bind(this), 5000)
+        // setInterval(this.fetchAllStockData.bind(this), 5000)
+        // setInterval(this.fetchRecentPriceRise.bind(this), 5000)
+        // setInterval(this.fetchMostRecentMinusPrice.bind(this), 5000)
+        // setInterval(this.fetchWordCloud.bind(this), 5000)
     }
 
     getPriceListData(list) {
@@ -88,6 +88,87 @@ class App extends Component {
         })
     }
 
+    renderGraph(){
+        var categories = [];
+        for (var i = 0; i < 12; i++) {
+            categories[i] = {
+                name: '类目' + i
+            };
+        }
+        graph.nodes.map((node, k) => {
+            node.itemStyle = null
+            node.value = node.symbolSize
+            node.symbolSize = 10
+            node.category=parseInt(node.category)
+        });
+        graph.links.map((edge, k) => {
+            edge.name = null;
+            edge.lineStyle = {
+                normal: {}
+            }
+        })
+        let option = {
+            tooltip: {},
+            legend: {
+                data: categories.map(function (a) {
+                    return a.name;
+                }),
+                right: '20',
+                bottom: '20',
+            },
+            // animationDuration: 1500,
+            // animationEasingUpdate: 'quinticInOut',
+            series : [
+                {
+                    type: 'graph',
+                    layout: 'force',
+                    animation: false,
+                    data: graph.nodes,
+                    links: graph.links,
+                    categories: categories,
+                    roam: false,
+                    focusNodeAdjacency: true,
+                    itemStyle: {
+                        normal: {
+                            borderColor: '#fff',
+                            borderWidth: 1,
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0, 0, 0, 0.3)'
+                        }
+                    },
+                    label: {
+                        position: 'right',
+                        formatter: '{b}'
+                    },
+                    lineStyle: {
+                        color: 'source',
+                        curveness: 0.3
+                    },
+                    emphasis: {
+                        lineStyle: {
+                            width: 5
+                        }
+                    },
+                    force: {
+                        repulsion: 10,
+                    },
+                    height: '90%',
+                    width: '80%',
+                }
+            ]
+        };
+
+        return <div className={styles.block}>
+            <div className={styles.title}>关系图</div>
+            <div>
+                <ReactEcharts
+                    option={option}
+                    // notMerge={true}
+                    // lazyUpdate={true}
+                />
+            </div>
+        </div>
+    }
     render() {
         let lenArr = this.state.priceList.map((v) => v.length)
         let max = Math.max.apply(null, lenArr)
@@ -196,9 +277,6 @@ class App extends Component {
                 }
             ]
         }
-
-        // let maskImage = new Image();
-        // maskImage.src = c
         let wordOption = {
             backgroundColor:'#fff',
             tooltip: {
@@ -273,6 +351,7 @@ class App extends Component {
                         lazyUpdate={true}
                     />
                 </div>
+                {this.renderGraph()}
             </div>
         );
     }
